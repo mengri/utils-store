@@ -273,6 +273,21 @@ func (b *Store[T]) ListPage(ctx context.Context, where string, pageNum, pageSize
 
 	return list, count, nil
 }
+func (b *Store[T]) ListSkip(ctx context.Context, where map[string]interface{}, skip, limit int, order ...string) ([]*T, error) {
+	if limit == 0 {
+		limit = 100
+	}
+	db := b.DB(ctx).Where(where)
+	if len(order) > 0 {
+		db = db.Order(order)
+	}
+	list := make([]*T, 0, limit)
+	err := db.Model(list).Limit(limit).Offset(skip).Find(&list).Error
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
 
 //
 //// Transaction 执行事务

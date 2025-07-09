@@ -36,6 +36,7 @@ type IBaseStore[T any] interface {
 	SoftDeleteQuery(ctx context.Context, sql string, args ...interface{}) error
 	Insert(ctx context.Context, t ...*T) error
 	List(ctx context.Context, m map[string]interface{}, order ...string) ([]*T, error)
+	ListSkip(ctx context.Context, m map[string]interface{}, skip, limit int, order ...string) ([]*T, error)
 	ListQuery(ctx context.Context, sql string, args []interface{}, order string) ([]*T, error)
 	First(ctx context.Context, m map[string]interface{}, order ...string) (*T, error)
 	FirstQuery(ctx context.Context, sql string, args []interface{}, order string) (*T, error)
