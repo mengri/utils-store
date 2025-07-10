@@ -6,8 +6,8 @@ import (
 	"github.com/mengri/utils-store/store"
 	store_mysql "github.com/mengri/utils-store/store/mysql"
 	"github.com/mengri/utils/autowire-v2"
-	"github.com/spf13/viper"
 	"log"
+	"os"
 )
 
 func init() {
@@ -31,19 +31,11 @@ func loadConfig() (string, error) {
 		// .env 文件不存在不是错误
 		fmt.Println("Warning: .env file not found, using environment variables only")
 	}
-	conf := new(config)
 
-	// 使用 viper 加载配置
-	viper.SetConfigType("env")
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("")
+	dataBaseUrl := os.Getenv("DATABASE_URL")
 
-	// 将环境变量绑定到结构体
-	if err := viper.Unmarshal(conf); err != nil {
-		return "", fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-	if conf.DatabaseURL == "" {
+	if dataBaseUrl == "" {
 		return "", fmt.Errorf("DATABASE_URL is required")
 	}
-	return conf.DatabaseURL, nil
+	return dataBaseUrl, nil
 }
