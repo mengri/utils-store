@@ -1,4 +1,4 @@
-package store_mysql
+package auto_yaml
 
 import (
 	"fmt"

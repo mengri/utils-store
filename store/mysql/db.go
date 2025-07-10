@@ -10,15 +10,13 @@ package store_mysql
 
 import (
 	"context"
-	"github.com/mengri/utils/cftool"
-	slog "log"
-	"os"
-	"time"
-
 	"github.com/mengri/utils-store/store"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	slog "log"
+	"os"
+	"time"
 )
 
 var (
@@ -28,20 +26,13 @@ var (
 type storeDB struct {
 	db *gorm.DB
 }
-type mysqlInit struct {
-	store.IDB
-	config *DBConfig `autowired:""`
+
+func NewStoreDB(db *gorm.DB) store.IDB {
+	return &storeDB{db: db}
 }
 
 var _ store.IDB = (*storeDB)(nil)
 
-func init() {
-	cftool.Register[DBConfig]("mysql")
-
-	autowire.Auto(func() store.IDB {
-		return &mysqlInit{}
-	})
-}
 func (m *storeDB) DB(ctx context.Context) *gorm.DB {
 	if ctx == nil {
 		return m.db.WithContext(context.Background())
@@ -58,11 +49,8 @@ func (m *storeDB) IsTxCtx(ctx context.Context) bool {
 	return false
 }
 
-func (m *mysqlInit) OnPreComplete() {
-	m.InitDb()
-}
-func (m *mysqlInit) InitDb() {
-	dialector := mysql.Open(m.config.getDBNS())
+func CreateDb(dbns string) store.IDB {
+	dialector := mysql.Open(dbns)
 	db, err := gorm.Open(dialector, &gorm.Config{
 		Logger: logger.New(slog.New(os.Stderr, "\r\n", slog.LstdFlags), logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
@@ -82,6 +70,5 @@ func (m *mysqlInit) InitDb() {
 	sqlDb.SetMaxOpenConns(200)
 	sqlDb.SetMaxIdleConns(200)
 
-	m.IDB = &storeDB{db: db}
-
+	return NewStoreDB(db)
 }
