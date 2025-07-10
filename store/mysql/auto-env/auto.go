@@ -8,6 +8,7 @@ import (
 	"github.com/mengri/utils/autowire-v2"
 	"log"
 	"os"
+	"strings"
 )
 
 func init() {
@@ -37,5 +38,6 @@ func loadConfig() (string, error) {
 	if dataBaseUrl == "" {
 		return "", fmt.Errorf("DATABASE_URL is required")
 	}
-	return dataBaseUrl, nil
+	
+	return strings.TrimSuffix(dataBaseUrl, "mysql://"), nil
 }
