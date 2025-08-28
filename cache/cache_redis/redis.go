@@ -2,6 +2,7 @@ package cache_redis
 
 import (
 	"context"
+	"github.com/mengri/utils/autowire-v2"
 	"github.com/mengri/utils/cftool"
 	"log"
 	"time"
