@@ -14,7 +14,7 @@ var _ IBaseStore[any] = (*Store[any])(nil)
 
 type Store[T any] struct {
 	imlTransaction
-	UniqueList []string
+	UniqueList []clause.Column
 	Model      *T
 	name       string
 }
@@ -53,7 +53,9 @@ func (b *Store[T]) UniqueIndex() {
 		if fieldStruct := modelType.Field(i); ast.IsExported(fieldStruct.Name) {
 			tagSetting := schema.ParseTagSetting(fieldStruct.Tag.Get("gorm"), ";")
 			if _, ok := tagSetting["UNIQUEINDEX"]; ok {
-				b.UniqueList = append(b.UniqueList, tagSetting["COLUMN"])
+				b.UniqueList = append(b.UniqueList, clause.Column{
+					Name: tagSetting["COLUMN"],
+				})
 			}
 		}
 	}
@@ -101,7 +103,7 @@ func (b *Store[T]) Save(ctx context.Context, t *T) error {
 		}
 		//没查到主键ID的数据 看看有没有唯一索引 有唯一索引 用唯一索引更新所有字段
 		if len(b.UniqueList) > 0 {
-			return b.UpdateByUnique(ctx, t, b.UniqueList)
+			return b.updateByUnique(ctx, t)
 		}
 	}
 	return b.Insert(ctx, t)
@@ -114,8 +116,16 @@ func (b *Store[T]) UpdateByUnique(ctx context.Context, t *T, uniques []string) e
 			Name: unique,
 		})
 	}
+
 	return b.DB(ctx).Clauses(clause.OnConflict{
 		Columns:   columns,
+		UpdateAll: true,
+	}).Create(t).Error
+}
+func (b *Store[T]) updateByUnique(ctx context.Context, t *T) error {
+
+	return b.DB(ctx).Clauses(clause.OnConflict{
+		Columns:   b.UniqueList,
 		UpdateAll: true,
 	}).Create(t).Error
 }
